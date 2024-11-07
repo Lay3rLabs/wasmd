@@ -58,13 +58,17 @@ curl localhost:26657/status | jq .result.sync_info
 
 ## Docker
 
-### Compile and wipe out old config
+### Pull and wipe out old config
 
 ```bash
-docker build -t lay3rlabs/layerd:0.53.0 .
+# this is a multi-arch build from the last commit on the layer branch
+docker pull ghcr.io/lay3rlabs/layerd:latest
 
-docker run --rm lay3rlabs/layerd:0.53.0 version
-docker run --rm lay3rlabs/layerd:0.53.0 help
+# if you want to build from source
+# docker build -t ghcr.io/lay3rlabs/layerd:latest .
+
+docker run --rm ghcr.io/lay3rlabs/layerd:latest version
+docker run --rm ghcr.io/lay3rlabs/layerd:latest help
 
 # note: we could use a docker volume rather than filesystem for deploy
 ls -l ~/.layer
@@ -74,23 +78,23 @@ rm -rf ~/.layer
 ### Set up a key for staking
 
 ```bash
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 keys --keyring-backend=test list
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 keys --keyring-backend=test add staker
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 keys --keyring-backend=test list
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest keys --keyring-backend=test list
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest keys --keyring-backend=test add staker
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest keys --keyring-backend=test list
 ```
 
 ### Set up genesis with tokens
 
 ```bash
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 init localnode --chain-id layer-local --default-denom ulayer
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest init localnode --chain-id layer-local --default-denom ulayer
 ls -l ~/.layer/config
 
 # add some tokens
-STAKER=$(docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 keys --keyring-backend=test show -a staker)
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 genesis add-genesis-account $STAKER 123456789000000ulayer
+STAKER=$(docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest keys --keyring-backend=test show -a staker)
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest genesis add-genesis-account $STAKER 123456789000000ulayer
 
 # commit to our validator
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 genesis gentx staker 54321000000ulayer --home=/root/.layer \
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest genesis gentx staker 54321000000ulayer --home=/root/.layer \
     --keyring-backend=test \
     --chain-id=layer-local \
     --moniker="default-validator" \
@@ -99,7 +103,7 @@ docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 genesis gen
     --commission-rate=0.07 \
     --details="This is the default staker"
 
-docker run --rm -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 genesis collect-gentxs
+docker run --rm -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest genesis collect-gentxs
 ```
 
 ### Adjust Config
@@ -111,7 +115,7 @@ Need to serve on 0.0.0.0 not localhost
 ### Start Chain
 
 ```bash
-docker run --rm -p 26657:26657 -p 9090:9090 -p 1317:1317 -v $HOME/.layer:/root/.layer lay3rlabs/layerd:0.53.0 start --rpc.laddr tcp://0.0.0.0:26657
+docker run --rm -p 26657:26657 -p 9090:9090 -p 1317:1317 -v $HOME/.layer:/root/.layer ghcr.io/lay3rlabs/layerd:latest start --rpc.laddr tcp://0.0.0.0:26657
 
 # check it is up
 curl localhost:26657/status
